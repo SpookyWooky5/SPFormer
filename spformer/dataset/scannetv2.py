@@ -79,14 +79,23 @@ class ScanNetDataset(Dataset):
         instance_label = self.get_cropped_inst_label(instance_label, valid_idxs)
         return xyz, xyz_middle, rgb, superpoint, semantic_label, instance_label
 
-    def transform_test(self, xyz, rgb, superpoint, semantic_label, instance_label):
+    # def transform_test(self, xyz, rgb, superpoint, semantic_label, instance_label):
+    #     xyz_middle = xyz
+    #     xyz = xyz_middle * self.voxel_cfg.scale
+    #     xyz -= xyz.min(0)
+    #     valid_idxs = np.ones(xyz.shape[0], dtype=bool)
+    #     superpoint = np.unique(superpoint[valid_idxs], return_inverse=True)[1]
+    #     instance_label = self.get_cropped_inst_label(instance_label, valid_idxs)
+    #     return xyz, xyz_middle, rgb, superpoint, semantic_label, instance_label
+
+    def transform_test(self, xyz, rgb, superpoint):
         xyz_middle = xyz
         xyz = xyz_middle * self.voxel_cfg.scale
         xyz -= xyz.min(0)
         valid_idxs = np.ones(xyz.shape[0], dtype=bool)
         superpoint = np.unique(superpoint[valid_idxs], return_inverse=True)[1]
-        instance_label = self.get_cropped_inst_label(instance_label, valid_idxs)
-        return xyz, xyz_middle, rgb, superpoint, semantic_label, instance_label
+        # instance_label = self.get_cropped_inst_label(instance_label, valid_idxs)
+        return xyz, xyz_middle, rgb, superpoint#, semantic_label, instance_label
 
     def data_aug(self, xyz, jitter=False, flip=False, rot=False):
         m = np.eye(3)
@@ -213,18 +222,29 @@ class ScanNetDataset(Dataset):
         scan_id = osp.basename(filename).replace(self.suffix, '')
         data = self.load(filename)
 
-        data = self.transform_train(*data) if self.training else self.transform_test(*data)
-        xyz, xyz_middle, rgb, superpoint, semantic_label, instance_label = data
-
-        coord = torch.from_numpy(xyz).long()
-        coord_float = torch.from_numpy(xyz_middle).float()
-        feat = torch.from_numpy(rgb).float()
-        superpoint = torch.from_numpy(superpoint)
-        semantic_label = torch.from_numpy(semantic_label).long()
-        semantic_label = torch.where(semantic_label < 2, -100, semantic_label - 2)
-        instance_label = torch.from_numpy(instance_label).long()
-        inst = self.get_instance3D(instance_label, semantic_label, superpoint, scan_id)
-        return scan_id, coord, coord_float, feat, superpoint, inst
+        if self.training:
+            data = self.transform_train(*data)
+            xyz, xyz_middle, rgb, superpoint, semantic_label, instance_label = data
+            
+            coord = torch.from_numpy(xyz).long()
+            coord_float = torch.from_numpy(xyz_middle).float()
+            feat = torch.from_numpy(rgb).float()
+            superpoint = torch.from_numpy(superpoint)
+            semantic_label = torch.from_numpy(semantic_label).long()
+            semantic_label = torch.where(semantic_label < 2, -100, semantic_label - 2)
+            instance_label = torch.from_numpy(instance_label).long()
+            inst = self.get_instance3D(instance_label, semantic_label, superpoint, scan_id)
+            return scan_id, coord, coord_float, feat, superpoint, inst
+        
+        else:
+            data = self.transform_test(*data)
+            xyz, xyz_middle, rgb, superpoint = data
+            
+            coord = torch.from_numpy(xyz).long()
+            coord_float = torch.from_numpy(xyz_middle).float()
+            feat = torch.from_numpy(rgb).float()
+            superpoint = torch.from_numpy(superpoint)
+            return scan_id, coord, coord_float, feat, superpoint, None
 
     def collate_fn(self, batch: Sequence[Sequence]) -> Dict:
         scan_ids, coords, coords_float, feats, superpoints, insts = [], [], [], [], [], []

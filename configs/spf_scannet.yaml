@@ -55,7 +55,7 @@ data:
     type: scannetv2
     data_root: data/scannetv2
     prefix: val
-    suffix: _inst_nostuff.pth
+    suffix: .pth
     training: False
     mode: 4
     with_elastic: False
