@@ -1,8 +1,8 @@
 train:
   seed: 1999
-  epochs: 512
+  epochs: 2
   interval: 16
-  pretrain: checkpoints/sstnet_pretrain.pth
+  pretrain: checkpoints/spf_scannet_512.pth
 
 test:
   seed: 1999
@@ -12,8 +12,8 @@ test:
 
 dataloader:
   train:
-    batch_size: 4
-    num_workers: 8
+    batch_size: 2
+    num_workers: 4
     persistent_workers: True
   val:
     batch_size: 1
@@ -42,7 +42,7 @@ data:
     type: scannetv2
     data_root: data/scannetv2
     prefix: val
-    suffix: _inst_nostuff.pth
+    suffix: .pth
     training: False
     mode: 4
     with_elastic: False
