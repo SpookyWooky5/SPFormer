@@ -164,10 +164,10 @@ class SPFormer(nn.Module):
             pred['pred_mask'] = rle_encode(mask_pred[i])
             pred_instances.append(pred)
 
-        if insts is not None:
+        try:
             gt_instances = insts[0].gt_instances
             return dict(scan_id=scan_ids[0], pred_instances=pred_instances, gt_instances=gt_instances)
-        else:
+        except Exception as e:
             return dict(scan_id=scan_ids[0], pred_instances=pred_instances)
 
     def extract_feat(self, x, superpoints, v2p_map):

@@ -1,7 +1,7 @@
 train:
   seed: 1999
   epochs: 2
-  interval: 16
+  interval: 1
   pretrain: checkpoints/spf_scannet_512.pth
 
 test:
